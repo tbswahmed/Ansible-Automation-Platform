@@ -1,0 +1,53 @@
+---
+# tasks file for setup
+- name: Include credentials
+  ansible.builtin.include_vars:
+    file: ../vars/credentials.yml
+
+- name: Open port 443/tcp.
+  ansible.posix.firewalld:
+    port: "443/tcp"
+    state: enabled
+    permanent: true
+    immediate: true
+  notify: restart firwalld
+
+- name: Open service https.
+  ansible.posix.firewalld:
+    service: https
+    state: enabled
+    permanent: true
+    immediate: true
+  notify: restart firwalld
+
+- name: Generate AAP inventory file
+  ansible.builtin.template:
+    src: inventory.j2
+    dest: /opt/ansible-automation-platform/installer/inventory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Fix permission
+  ansible.builtin.file:
+    path: /opt/ansible-automation-platform
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    recurse: yes
+
+- name: Change required RAM to 2400M
+  ansible.builtin.lineinfile:
+    path: /opt/ansible-automation-platform/installer/collections/ansible_collections/ansible/automation_platform_installer/roles/preflight/defaults/main.yml
+    regexp: '^required_ram: 7400'
+    line: 'required_ram: 2400'
+
+
+- name: Execute the setup.sh script with custom environment variables
+  ansible.builtin.shell: /opt/ansible-automation-platform/installer/setup.sh -- -vvv
+  delegate_to: "{{ groups['controller'][0] }}"
+  remote_user: "{{ ansible_user }}"
+  environment:
+    PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    ANSIBLE_BECOME_METHOD: 'sudo'
+    ANSIBLE_BECOME: 'True'
+    ANSIBLE_HOST_KEY_CHECKING: 'False'
+    ANSIBLE_BECOME_USER: 'root'

@@ -1,0 +1,17 @@
+[gateway]
+gateway1.onetech.com
+gateway2.onetech.com
+
+[controller]
+controller.onetech.com
+
+[database]
+database.onetech.com ansible_host=10.112.62.25
+
+[Loadbalancer]
+gateway1.onetech.com
+gateway2.onetech.com
+
+[aapservers:children]
+gateway
+controller

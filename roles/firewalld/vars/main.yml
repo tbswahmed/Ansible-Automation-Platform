@@ -1,0 +1,19 @@
+---
+# vars file for firewalld
+ports:
+  - "80/tcp"
+  - "22/tcp"
+  - "5432/tcp"
+  - "6379/tcp"
+  - "8443/tcp"
+  - "16379/tcp"
+  - "27199/tcp"
+  - "50051/tcp"
+  - "8080/tcp"
+  - "9443/tcp"
+
+services:
+  - postgresql
+  - ssh
+  - ntp
+  - http

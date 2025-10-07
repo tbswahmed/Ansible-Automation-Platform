@@ -1,0 +1,49 @@
+---
+# tasks file for common
+- name: Update nodes.
+  ansible.builtin.yum:
+    name: '*'
+    state: latest
+
+- name: Install common packages
+  ansible.builtin.yum:
+    name:
+      - lsof
+      - bash-completion
+      - glibc
+      - glibc-common
+      - glibc-all-langpacks
+
+#======== Configure system locale ============#
+- name: Set default locale to en_US.UTF-8 in locale.conf
+  ansible.builtin.lineinfile:
+    path: /etc/locale.conf
+    line: 'LANG=en_US.UTF-8'
+    create: yes
+
+- name: Source the locale.conf to apply immediately
+  ansible.builtin.shell: |
+    source /etc/locale.conf
+
+- name: Enable a BaseOS and AppStream repository.
+  community.general.rhsm_repository:
+    name:
+      - rhel-9-for-x86_64-baseos-rpms
+      - rhel-9-for-x86_64-appstream-rpms
+        
+- name: Create template /etc/hosts.
+  ansible.builtin.template:
+    src: hosts.j2
+    dest: /etc/hosts
+
+- name: make SElinux permissive (persistent)
+  ansible.builtin.replace:
+    path: /etc/selinux/config
+    regexp: '^SELINUX=enforcing'
+    replace: 'SELINUX=permissive'
+
+- name: Temporarily set SELinux to permissive (no reboot)
+  ansible.posix.selinux:
+    policy: targeted
+    state: permissive
+
